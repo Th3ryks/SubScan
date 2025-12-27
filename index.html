@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubScan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo">SubScan</div>
+        <label class="switch">
+            <input type="checkbox" id="themeToggle">
+            <span class="slider round"></span>
+        </label>
+    </header>
+
+    <main>
+        <!-- Input Section -->
+        <section class="card input-section">
+            <div class="input-group">
+                <input type="text" id="domainInput" placeholder="example.com" autocomplete="off" spellcheck="false">
+                <button id="scanBtn" class="btn">Scan</button>
+            </div>
+            <div id="errorMsg" class="error-msg"></div>
+        </section>
+
+        <!-- Progress Section -->
+        <section id="progressSection" class="card progress-container">
+            <div class="progress-bar-bg">
+                <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+            <div id="statusText" class="status-text">Ready</div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="card results-section">
+            <div class="controls-bar">
+                <div class="stats" id="statsBlock">Found: 0 | Time: 0s</div>
+                <div class="action-buttons">
+                    <button id="copyBtn" class="btn btn-secondary">Copy All</button>
+                    <button id="exportTxtBtn" class="btn btn-secondary mobile-hidden">Export TXT</button>
+                    <button id="exportJsonBtn" class="btn btn-secondary mobile-hidden">Export JSON</button>
+                    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                </div>
+            </div>
+
+            <div class="results-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="subdomain">Subdomain</th>
+                            <th data-sort="ip">IP Address</th>
+                            <th data-sort="cloudflare">Cloudflare</th>
+                            <th data-sort="time">Response Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <!-- Rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="showMoreContainer" class="show-more-container hidden">
+                <button id="showMoreBtn" class="btn btn-secondary">
+                    Show <span id="hiddenCount">0</span> more domains
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
