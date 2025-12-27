@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressSection = document.getElementById('progressSection');
     const resultsBody = document.getElementById('resultsBody');
     const statsBlock = document.getElementById('statsBlock');
+    const loadingSpinner = document.getElementById('loadingSpinner');
     const showMoreContainer = document.getElementById('showMoreContainer');
     const showMoreBtn = document.getElementById('showMoreBtn');
     const hiddenCountSpan = document.getElementById('hiddenCount');
@@ -92,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (totalCandidates > 0) {
             updateProgress(40, `Verifying ${totalCandidates} candidates...`);
         }
+        updateStats();
     }
 
     async function startVerification(signal) {
@@ -158,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             updateProgress(20, 'Querying public APIs...');
+            loadingSpinner.classList.remove('hidden');
             
             const crtPromise = fetchCrtSh(domain, signal)
                 .then(subs => {
@@ -175,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await Promise.all([crtPromise, hackerTargetPromise]);
             sourcesCompleted = true;
+            loadingSpinner.classList.add('hidden');
 
             await verificationPromise;
 
@@ -189,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError('An error occurred: ' + err.message);
             }
         } finally {
+            loadingSpinner.classList.add('hidden');
             scanBtn.disabled = false;
             scanBtn.textContent = 'Scan';
             abortController = null;
@@ -210,8 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateStats() {
-        const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
-        statsBlock.textContent = `Found: ${foundCount} | Time: ${elapsed}s`;
+        const elapsed = startTime ? ((performance.now() - startTime) / 1000).toFixed(1) : '0.0';
+        const discovered = uniqueSubdomains ? uniqueSubdomains.size : 0;
+        statsBlock.textContent = `Discovered: ${discovered} | Resolved: ${foundCount} | Time: ${elapsed}s`;
     }
 
     async function fetchCrtSh(domain, signal) {
@@ -223,7 +229,10 @@ document.addEventListener('DOMContentLoaded', () => {
         data.forEach(entry => {
             const names = entry.name_value.split('\n');
             names.forEach(name => {
-                const clean = name.trim().toLowerCase();
+                let clean = name.trim().toLowerCase();
+                if (clean.endsWith('.')) {
+                    clean = clean.slice(0, -1);
+                }
                 if (clean.endsWith(domain) && !clean.includes('*')) {
                     subs.add(clean);
                 }
@@ -273,7 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const ipParts = ip.split('.').map(Number);
         if (ipParts.length !== 4) return false;
-        // Use >>> 0 to ensure unsigned 32-bit integer behavior
         const ipNum = ((ipParts[0] << 24) | (ipParts[1] << 16) | (ipParts[2] << 8) | ipParts[3]) >>> 0;
 
         for (const range of cfRanges) {
@@ -326,7 +334,12 @@ document.addEventListener('DOMContentLoaded', () => {
         foundCount = 0;
         showAllResults = false;
         resultsBody.innerHTML = '';
-        statsBlock.textContent = 'Found: 0 | Time: 0s';
+        uniqueSubdomains = new Set();
+        totalCandidates = 0;
+        completedCandidates = 0;
+        sourcesCompleted = false;
+        loadingSpinner.classList.add('hidden');
+        statsBlock.textContent = 'Discovered: 0 | Resolved: 0 | Time: 0s';
         showMoreContainer.classList.add('hidden');
         hiddenCountSpan.textContent = '0';
         if (clearInput) domainInput.value = '';

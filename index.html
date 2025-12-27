@@ -17,7 +17,6 @@
     </header>
 
     <main>
-        <!-- Input Section -->
         <section class="card input-section">
             <div class="input-group">
                 <input type="text" id="domainInput" placeholder="example.com" autocomplete="off" spellcheck="false">
@@ -26,18 +25,19 @@
             <div id="errorMsg" class="error-msg"></div>
         </section>
 
-        <!-- Progress Section -->
         <section id="progressSection" class="card progress-container">
             <div class="progress-bar-bg">
                 <div id="progressBar" class="progress-bar-fill"></div>
             </div>
-            <div id="statusText" class="status-text">Ready</div>
+            <div class="status-row">
+                <div id="statusText" class="status-text">Ready</div>
+                <div id="loadingSpinner" class="spinner hidden"></div>
+            </div>
         </section>
 
-        <!-- Results Section -->
         <section class="card results-section">
             <div class="controls-bar">
-                <div class="stats" id="statsBlock">Found: 0 | Time: 0s</div>
+                <div class="stats" id="statsBlock">Discovered: 0 | Resolved: 0 | Time: 0s</div>
                 <div class="action-buttons">
                     <button id="copyBtn" class="btn btn-secondary">Copy All</button>
                     <button id="exportTxtBtn" class="btn btn-secondary mobile-hidden">Export TXT</button>
@@ -57,7 +57,6 @@
                         </tr>
                     </thead>
                     <tbody id="resultsBody">
-                        <!-- Rows will be inserted here -->
                     </tbody>
                 </table>
             </div>

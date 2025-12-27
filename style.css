@@ -57,7 +57,6 @@ header {
     color: var(--text-main);
 }
 
-/* Toggle Switch */
 .switch {
   position: relative;
   display: inline-block;
@@ -227,10 +226,26 @@ input[type="text"]:focus {
     transition: width 0.3s ease;
 }
 
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
 .status-text {
     font-size: 0.875rem;
     color: var(--text-secondary);
-    text-align: right;
+    text-align: left;
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--element-bg);
+    border-top-color: var(--accent);
+    animation: spin 0.6s linear infinite;
 }
 
 .results-container {
@@ -383,4 +398,13 @@ td.cf-false {
 
 .fade-in {
     animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
