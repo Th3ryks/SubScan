@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clearBtn');
 
     let abortController = null;
+    let isScanning = false;
     let results = [];
     let startTime = 0;
     let foundCount = 0;
@@ -66,6 +67,17 @@ document.addEventListener('DOMContentLoaded', () => {
         showAllResults = true;
         renderResults();
     });
+
+    domainInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            startScan();
+        }
+    });
+
+    domainInput.addEventListener('input', handleDomainInput);
+
+    handleDomainInput();
     
     document.querySelectorAll('th[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortResults(th.dataset.sort));
@@ -137,15 +149,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function startScan() {
         const domain = domainInput.value.trim().toLowerCase();
-        if (!validateDomain(domain)) {
-            showError('Invalid domain format. Use format like "example.com"');
+        if (isScanning) {
+            if (abortController) {
+                abortController.abort();
+                updateProgress(100, 'Aborted');
+            }
             return;
         }
-        
+        if (!validateDomain(domain)) {
+            showError('Invalid domain format. Use format like "example.com"');
+            handleDomainInput();
+            return;
+        }
         showError('');
         clearResults(false);
-        scanBtn.disabled = true;
-        scanBtn.textContent = 'Scanning...';
+        isScanning = true;
+        scanBtn.disabled = false;
+        scanBtn.textContent = 'Stop';
         progressSection.classList.add('active');
         updateProgress(5, 'Initializing...');
         
@@ -194,9 +214,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } finally {
             loadingSpinner.classList.add('hidden');
-            scanBtn.disabled = false;
+            isScanning = false;
             scanBtn.textContent = 'Scan';
             abortController = null;
+            handleDomainInput();
+        }
+    }
+
+    function handleDomainInput() {
+        const domain = domainInput.value.trim().toLowerCase();
+        if (!domain) {
+            domainInput.style.borderColor = '';
+            scanBtn.disabled = true;
+            return;
+        }
+        const isValid = validateDomain(domain);
+        if (!isScanning) {
+            scanBtn.disabled = !isValid;
+        }
+        if (!isValid) {
+            domainInput.style.borderColor = '#e74c3c';
+        } else {
+            domainInput.style.borderColor = '';
+            showError('');
         }
     }
 
