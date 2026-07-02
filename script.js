@@ -76,6 +76,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     domainInput.addEventListener('input', handleDomainInput);
+    domainInput.addEventListener('paste', () => {
+        setTimeout(() => {
+            const domain = normalizeDomain(domainInput.value);
+            if (domain) {
+                domainInput.value = domain;
+            }
+            handleDomainInput();
+        }, 0);
+    });
+    domainInput.addEventListener('blur', () => {
+        const domain = normalizeDomain(domainInput.value);
+        if (domain) {
+            domainInput.value = domain;
+        }
+        handleDomainInput();
+    });
 
     handleDomainInput();
     
@@ -225,30 +241,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function normalizeDomain(input) {
-        let domain = input.trim().toLowerCase();
-        if (!domain) {
+        let value = input.trim().toLowerCase();
+        if (!value) {
             return '';
         }
 
-        if (domain.includes('://')) {
-            try {
-                domain = new URL(domain).hostname;
-            } catch {
-                domain = domain.replace(/^https?:\/\//, '');
+        value = value.replace(/^[a-z][a-z0-9+.-]*:\/+/i, (match) => {
+            return match.includes('://') ? match : 'https://';
+        });
+
+        if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) {
+            value = `https://${value}`;
+        }
+
+        try {
+            const hostname = new URL(value).hostname.toLowerCase();
+            if (!hostname) {
+                return '';
             }
+            return hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+        } catch {
+            let domain = input.trim().toLowerCase().replace(/^https?:\/\//, '');
+            domain = domain.split('/')[0].split('?')[0].split('#')[0].split(':')[0];
+            if (domain.startsWith('www.')) {
+                domain = domain.slice(4);
+            }
+            if (domain.endsWith('.')) {
+                domain = domain.slice(0, -1);
+            }
+            return domain;
         }
-
-        domain = domain.split('/')[0].split('?')[0].split('#')[0];
-
-        if (domain.startsWith('www.')) {
-            domain = domain.slice(4);
-        }
-
-        if (domain.endsWith('.')) {
-            domain = domain.slice(0, -1);
-        }
-
-        return domain;
     }
 
     function handleDomainInput() {
@@ -271,8 +293,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function validateDomain(domain) {
-        const regex = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
-        return regex.test(domain);
+        if (!domain || domain.includes(' ') || domain.includes('..')) {
+            return false;
+        }
+
+        const labels = domain.split('.');
+        if (labels.length < 2) {
+            return false;
+        }
+
+        const labelPattern = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
+        return labels.every((label) => label.length > 0 && label.length <= 63 && labelPattern.test(label));
     }
 
     function showError(msg) {
@@ -450,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = results[i];
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><a href="http://${item.subdomain}" target="_blank" class="domain-link">${item.subdomain}</a></td>
+                <td><a href="https://${item.subdomain}" target="_blank" rel="noopener noreferrer" class="domain-link">${item.subdomain}</a></td>
                 <td><span class="ip-copy" title="Click to copy">${item.ip}</span></td>
                 <td class="${item.isCF ? 'cf-true' : 'cf-false'}">${item.isCF ? 'true' : 'false'}</td>
                 <td>${item.time ? item.time + 'ms' : '-'}</td>
