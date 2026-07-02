@@ -148,7 +148,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function startScan() {
-        const domain = domainInput.value.trim().toLowerCase();
+        const domain = normalizeDomain(domainInput.value);
+        if (domain && domain !== domainInput.value.trim().toLowerCase()) {
+            domainInput.value = domain;
+        }
         if (isScanning) {
             if (abortController) {
                 abortController.abort();
@@ -221,8 +224,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function normalizeDomain(input) {
+        let domain = input.trim().toLowerCase();
+        if (!domain) {
+            return '';
+        }
+
+        if (domain.includes('://')) {
+            try {
+                domain = new URL(domain).hostname;
+            } catch {
+                domain = domain.replace(/^https?:\/\//, '');
+            }
+        }
+
+        domain = domain.split('/')[0].split('?')[0].split('#')[0];
+
+        if (domain.startsWith('www.')) {
+            domain = domain.slice(4);
+        }
+
+        if (domain.endsWith('.')) {
+            domain = domain.slice(0, -1);
+        }
+
+        return domain;
+    }
+
     function handleDomainInput() {
-        const domain = domainInput.value.trim().toLowerCase();
+        const domain = normalizeDomain(domainInput.value);
         if (!domain) {
             domainInput.style.borderColor = '';
             scanBtn.disabled = true;
